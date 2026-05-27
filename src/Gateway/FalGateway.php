@@ -13,13 +13,12 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;
-use Laravel\Ai\Contracts\Gateway\Gateway;
 use Laravel\Ai\Contracts\Gateway\ImageGateway;
 use Laravel\Ai\Contracts\Providers\ImageProvider;
 use Laravel\Ai\Responses\ImageResponse;
 use RuntimeException;
 
-class FalGateway implements Gateway, ImageGateway
+class FalGateway implements ImageGateway
 {
     use FetchesResults;
     use MapsAttachments;
