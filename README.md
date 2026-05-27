@@ -237,7 +237,7 @@ The full list of options available in `config/fal-ai.php`:
 | `key`                     | string | `env('FAL_KEY')`                              | Your fal API key.                                                                                 |
 | `base_url`                | string | `https://queue.fal.run`                       | fal's queue endpoint.                                                                             |
 | `sync_base_url`           | string | `https://fal.run`                             | fal's synchronous endpoint. Reserved for future use.                                              |
-| `storage_upload_url`      | string | `https://rest.alpha.fal.ai/storage/upload`    | Where local file attachments are uploaded.                                                        |
+| `storage_upload_url`      | string | `https://rest.alpha.fal.ai/storage/upload/initiate` | Initiates a two-step upload: returns a presigned URL the package then PUTs the bytes to.    |
 | `request_timeout`         | int    | `30`                                          | Per-request timeout in seconds.                                                                   |
 | `connect_timeout`         | int    | `10`                                          | Connection timeout in seconds.                                                                    |
 | `image_download_timeout`  | int    | `30`                                          | Timeout for downloading result images when `fetch_images` is enabled.                             |

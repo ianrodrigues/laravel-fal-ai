@@ -4,6 +4,7 @@ namespace IanRodrigues\FalAi\Image\Concerns;
 
 use IanRodrigues\FalAi\Exceptions\FalRequestException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Ai\Files\Base64Image;
 use Laravel\Ai\Files\Image;
@@ -73,9 +74,10 @@ trait MapsAttachments
             throw new FalRequestException('fal storage initiate returned no usable URLs.');
         }
 
-        $put = $this->client($apiKey)
-            ->withHeaders(['Content-Type' => $mime])
+        $put = Http::withHeaders(['Content-Type' => $mime])
             ->withBody($contents, $mime)
+            ->timeout((int) config('fal-ai.request_timeout', 30))
+            ->connectTimeout((int) config('fal-ai.connect_timeout', 10))
             ->put($uploadUrl);
 
         if ($put->failed()) {
