@@ -24,41 +24,44 @@ trait FetchesResults
         }
 
         if (config('fal-ai.fetch_images', true)) {
-            $json['images'] = $this->inlineImages($json['images'] ?? []);
+            if (isset($json['images']) && is_array($json['images'])) {
+                $json['images'] = array_map(fn (array $image) => $this->inlineImage($image), $json['images']);
+            }
+
+            if (isset($json['image']) && is_array($json['image'])) {
+                $json['image'] = $this->inlineImage($json['image']);
+            }
         }
 
         return $json;
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $images
-     * @return array<int, array<string, mixed>>
+     * @param  array<string, mixed>  $image
+     * @return array<string, mixed>
      */
-    protected function inlineImages(array $images): array
+    protected function inlineImage(array $image): array
     {
-        $timeout = (int) config('fal-ai.image_download_timeout', 30);
-
-        return array_map(function (array $image) use ($timeout): array {
-            if (isset($image['_b64'])) {
-                return $image;
-            }
-
-            $url = $image['url'] ?? null;
-
-            if (! is_string($url) || $url === '') {
-                return $image;
-            }
-
-            $response = Http::timeout($timeout)->get($url);
-
-            if ($response->failed()) {
-                throw FalRequestException::from($response, "image download {$url}");
-            }
-
-            $image['_b64'] = base64_encode($response->body());
-
+        if (isset($image['_b64'])) {
             return $image;
-        }, $images);
+        }
+
+        $url = $image['url'] ?? null;
+
+        if (! is_string($url) || $url === '') {
+            return $image;
+        }
+
+        $timeout = (int) config('fal-ai.image_download_timeout', 30);
+        $response = Http::timeout($timeout)->get($url);
+
+        if ($response->failed()) {
+            throw FalRequestException::from($response, "image download {$url}");
+        }
+
+        $image['_b64'] = base64_encode($response->body());
+
+        return $image;
     }
 
     abstract protected function client(string $apiKey): PendingRequest;

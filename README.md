@@ -4,7 +4,12 @@
 
 `laravel-fal-ai` is a third-party [fal.ai](https://fal.ai) driver for the official [Laravel AI SDK](https://github.com/laravel/ai). It plugs a `fal` provider into the SDK's manager so you may generate content with fal models through the same fluent API you use for OpenAI, Gemini, and the other bundled providers.
 
-The package ships image generation today, starting with `nano-banana-2/edit`. Its architecture is capability-scoped, so support for audio, video, and transcription can be added under parallel namespaces as fal expands.
+The package ships image generation today with two built-in handlers:
+
+- **`nano-banana-2/edit`** — prompt + reference images → edited image.
+- **`birefnet`** — single image → transparent background-removed cutout (defaults to v2; pass `birefnet/v1` to opt into the legacy model).
+
+Its architecture is capability-scoped, so support for audio, video, and transcription can be added under parallel namespaces as fal expands.
 
 ## Installation
 
@@ -117,6 +122,23 @@ The following fal-only methods are available:
 | `limitGenerations(int)`        | `limit_generations`  |
 
 For any option not covered by a dedicated method, you may use `option(string, mixed)` or pass an array via `options(array)`.
+
+### Background Removal (BiRefNet)
+
+The package also handles `fal-ai/birefnet`, which removes the background of a single attached image and returns a transparent PNG. v2 is used by default; pass `birefnet/v1` to opt into the legacy model.
+
+```php
+use Laravel\Ai\Files\Image as ImageFile;
+use Laravel\Ai\Image;
+
+$response = Image::of('remove background')
+    ->attachments([ImageFile::fromPath('/home/laravel/character.png')])
+    ->generate(provider: 'fal', model: 'birefnet');
+
+file_put_contents('cutout.png', base64_decode($response->images->first()->image));
+```
+
+A prompt string is required by the SDK but ignored by BiRefNet — use any placeholder. Per-call options the handler passes through to fal: `model` (Swin variant), `output_format` (`png` | `webp`), `sync_mode`.
 
 ### Attachments
 
