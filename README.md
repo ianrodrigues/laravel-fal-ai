@@ -19,10 +19,8 @@ The service provider is registered automatically through Laravel's package disco
 ### Requirements
 
 - PHP 8.3 or higher
-- Laravel 12
+- Laravel 12 or 13
 - `laravel/ai` ^0.7
-
-> Laravel 13 will be supported once `pestphp/pest-plugin-laravel` adds a release that targets `laravel/framework ^13`.
 
 ## Configuration
 
