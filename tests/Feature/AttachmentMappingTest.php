@@ -8,7 +8,7 @@ use Laravel\Ai\Files\Image;
 it('passes through RemoteImage URLs verbatim (no upload)', function () {
     $this->fakeFalQueueRoundtrip();
 
-    $this->falGateway()->generateImage(
+    $this->falImageGateway()->generateImage(
         provider: $this->falProvider(),
         model: 'nano-banana-2/edit',
         prompt: 'p',
@@ -28,7 +28,7 @@ it('uploads LocalImage bytes from disk to fal storage', function () {
     $this->fakeFalQueueRoundtrip();
 
     try {
-        $this->falGateway()->generateImage(
+        $this->falImageGateway()->generateImage(
             provider: $this->falProvider(),
             model: 'nano-banana-2/edit',
             prompt: 'p',
@@ -50,7 +50,7 @@ it('uploads StoredImage bytes to fal storage and uses the returned URL', functio
 
     $this->fakeFalQueueRoundtrip();
 
-    $this->falGateway()->generateImage(
+    $this->falImageGateway()->generateImage(
         provider: $this->falProvider(),
         model: 'nano-banana-2/edit',
         prompt: 'p',
@@ -68,7 +68,7 @@ it('uploads Base64Image bytes after stripping the data URI prefix', function () 
 
     $payload = 'data:image/png;base64,'.base64_encode('png-bytes');
 
-    $this->falGateway()->generateImage(
+    $this->falImageGateway()->generateImage(
         provider: $this->falProvider(),
         model: 'nano-banana-2/edit',
         prompt: 'p',

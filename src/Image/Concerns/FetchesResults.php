@@ -1,6 +1,6 @@
 <?php
 
-namespace IanRodrigues\FalAi\Gateway\Concerns;
+namespace IanRodrigues\FalAi\Image\Concerns;
 
 use IanRodrigues\FalAi\Exceptions\FalRequestException;
 use Illuminate\Http\Client\PendingRequest;

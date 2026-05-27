@@ -26,11 +26,8 @@ interface ModelHandler
     ): array;
 
     /**
-     * Parse fal's response into an ImageResponse.
-     *
-     * When `fal-ai.fetch_images` is enabled, each image entry has an
-     * additional `_b64` key with the downloaded base64 payload. Prefer it
-     * over `url` when present.
+     * Each image entry has a `_b64` key when `fal-ai.fetch_images` is on.
+     * Prefer it over `url`.
      *
      * @param  array<string, mixed>  $json
      */

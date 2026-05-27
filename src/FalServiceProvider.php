@@ -3,6 +3,7 @@
 namespace IanRodrigues\FalAi;
 
 use IanRodrigues\FalAi\Gateway\FalGateway;
+use IanRodrigues\FalAi\Image\Gateway as ImageGateway;
 use IanRodrigues\FalAi\Image\ModelHandler;
 use IanRodrigues\FalAi\Image\ModelHandlerRegistry;
 use IanRodrigues\FalAi\Image\NanoBananaTwoEdit;
@@ -38,14 +39,11 @@ class FalServiceProvider extends ServiceProvider
 
         $this->app->afterResolving(AiManager::class, function (AiManager $manager, $app) {
             $manager->extend('fal', function ($app, array $config) {
-                return new FalProvider(
-                    new FalGateway(
-                        $app->make(Dispatcher::class),
-                        $app->make(ModelHandlerRegistry::class),
-                    ),
-                    $config,
-                    $app->make(Dispatcher::class),
-                );
+                $events = $app->make(Dispatcher::class);
+                $registry = $app->make(ModelHandlerRegistry::class);
+
+                return (new FalProvider(new FalGateway, $config, $events))
+                    ->useImageGateway(new ImageGateway($events, $registry));
             });
         });
     }

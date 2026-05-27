@@ -2,8 +2,8 @@
 
 namespace IanRodrigues\FalAi\Gateway\Concerns;
 
-use Illuminate\Http\Client\PendingRequest;
 use IanRodrigues\FalAi\Exceptions\FalRequestException;
+use Illuminate\Http\Client\PendingRequest;
 
 trait SubmitsToQueue
 {

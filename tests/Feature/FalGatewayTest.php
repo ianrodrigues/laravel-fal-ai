@@ -4,7 +4,10 @@ use IanRodrigues\FalAi\Exceptions\FalRequestException;
 use IanRodrigues\FalAi\Exceptions\MissingAttachmentsException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Laravel\Ai\Contracts\Gateway\ImageGateway;
+use Laravel\Ai\Contracts\Providers\ImageProvider;
 use Laravel\Ai\Files\Image;
+use Laravel\Ai\Responses\ImageResponse;
 
 it('submits, polls, fetches, and returns an ImageResponse with base64 images', function () {
     Http::fake([
@@ -22,7 +25,7 @@ it('submits, polls, fetches, and returns an ImageResponse with base64 images', f
         'fal.media/files/out.png' => Http::response('PNG-BINARY-BYTES'),
     ]);
 
-    $response = $this->falGateway()->generateImage(
+    $response = $this->falImageGateway()->generateImage(
         provider: $this->falProvider(),
         model: 'nano-banana-2/edit',
         prompt: 'turn the sky into a sunset',
@@ -61,16 +64,16 @@ it('polls until the job leaves IN_PROGRESS before fetching the result', function
         'fal.media/*' => Http::response('done'),
     ]);
 
-    $response = $this->falGateway()->generateImage(
+    $response = $this->falImageGateway()->generateImage(
         provider: $this->falProvider(),
         model: 'nano-banana-2/edit',
         prompt: 'p',
         attachments: [Image::fromUrl('https://example.com/in.jpg')],
     );
 
-    expect($response->images)->toHaveCount(1);
-
-    Http::assertSentCount(3, fn (Request $r) => str_contains($r->url(), '/requests/req-x/status'));
+    expect($response->images)->toHaveCount(1)
+        ->and(Http::recorded(fn (Request $r) => str_contains($r->url(), '/requests/req-x/status')))
+        ->toHaveCount(3);
 });
 
 it('throws when fal reports a FAILED status', function () {
@@ -86,7 +89,7 @@ it('throws when fal reports a FAILED status', function () {
         ]),
     ]);
 
-    $this->falGateway()->generateImage(
+    $this->falImageGateway()->generateImage(
         provider: $this->falProvider(),
         model: 'nano-banana-2/edit',
         prompt: 'p',
@@ -99,7 +102,7 @@ it('throws when a queue submit returns a 4xx', function () {
         'queue.fal.run/fal-ai/nano-banana-2/edit' => Http::response(['error' => 'bad'], 422),
     ]);
 
-    $this->falGateway()->generateImage(
+    $this->falImageGateway()->generateImage(
         provider: $this->falProvider(),
         model: 'nano-banana-2/edit',
         prompt: 'p',
@@ -108,7 +111,7 @@ it('throws when a queue submit returns a 4xx', function () {
 })->throws(FalRequestException::class);
 
 it('throws when nano-banana-2/edit is called without attachments', function () {
-    $this->falGateway()->generateImage(
+    $this->falImageGateway()->generateImage(
         provider: $this->falProvider(),
         model: 'nano-banana-2/edit',
         prompt: 'p',
@@ -116,19 +119,19 @@ it('throws when nano-banana-2/edit is called without attachments', function () {
 })->throws(MissingAttachmentsException::class);
 
 it('rejects providers that are not a FalProvider', function () {
-    $bogus = new class implements \Laravel\Ai\Contracts\Providers\ImageProvider
+    $bogus = new class implements ImageProvider
     {
-        public function image(string $prompt, array $attachments = [], ?string $size = null, ?string $quality = null, ?string $model = null, ?int $timeout = null): \Laravel\Ai\Responses\ImageResponse
+        public function image(string $prompt, array $attachments = [], ?string $size = null, ?string $quality = null, ?string $model = null, ?int $timeout = null): ImageResponse
         {
-            throw new \LogicException('not used');
+            throw new LogicException('not used');
         }
 
-        public function imageGateway(): \Laravel\Ai\Contracts\Gateway\ImageGateway
+        public function imageGateway(): ImageGateway
         {
-            throw new \LogicException('not used');
+            throw new LogicException('not used');
         }
 
-        public function useImageGateway(\Laravel\Ai\Contracts\Gateway\ImageGateway $gateway): self
+        public function useImageGateway(ImageGateway $gateway): self
         {
             return $this;
         }
@@ -144,7 +147,7 @@ it('rejects providers that are not a FalProvider', function () {
         }
     };
 
-    $this->falGateway()->generateImage(
+    $this->falImageGateway()->generateImage(
         provider: $bogus,
         model: 'nano-banana-2/edit',
         prompt: 'p',
@@ -166,7 +169,7 @@ it('forwards provider request options into the fal payload', function () {
     $provider = $this->falProvider();
     $provider->withRequestOptions(['seed' => 7, 'num_images' => 2]);
 
-    $this->falGateway()->generateImage(
+    $this->falImageGateway()->generateImage(
         provider: $provider,
         model: 'nano-banana-2/edit',
         prompt: 'p',
@@ -194,7 +197,7 @@ it('respects fetch_images=false by skipping image downloads', function () {
         ]),
     ]);
 
-    $response = $this->falGateway()->generateImage(
+    $response = $this->falImageGateway()->generateImage(
         provider: $this->falProvider(),
         model: 'nano-banana-2/edit',
         prompt: 'p',

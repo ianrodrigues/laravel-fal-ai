@@ -4,6 +4,9 @@ use IanRodrigues\FalAi\Exceptions\UnknownModelException;
 use IanRodrigues\FalAi\Image\ModelHandler;
 use IanRodrigues\FalAi\Image\ModelHandlerRegistry;
 use IanRodrigues\FalAi\Image\NanoBananaTwoEdit;
+use Laravel\Ai\Responses\Data\Meta;
+use Laravel\Ai\Responses\Data\Usage;
+use Laravel\Ai\Responses\ImageResponse;
 
 it('resolves a registered handler by model name', function () {
     $registry = new ModelHandlerRegistry;
@@ -38,12 +41,12 @@ it('lets later-registered handlers take precedence', function () {
             return [];
         }
 
-        public function parseResponse(array $json, string $model): \Laravel\Ai\Responses\ImageResponse
+        public function parseResponse(array $json, string $model): ImageResponse
         {
-            return new \Laravel\Ai\Responses\ImageResponse(
+            return new ImageResponse(
                 collect(),
-                new \Laravel\Ai\Responses\Data\Usage,
-                new \Laravel\Ai\Responses\Data\Meta('fal', $model),
+                new Usage,
+                new Meta('fal', $model),
             );
         }
 

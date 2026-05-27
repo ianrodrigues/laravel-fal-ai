@@ -5,6 +5,7 @@ namespace IanRodrigues\FalAi\Tests;
 use IanRodrigues\FalAi\FalProvider;
 use IanRodrigues\FalAi\FalServiceProvider;
 use IanRodrigues\FalAi\Gateway\FalGateway;
+use IanRodrigues\FalAi\Image\Gateway as ImageGateway;
 use IanRodrigues\FalAi\Image\ModelHandlerRegistry;
 use IanRodrigues\FalAi\Image\NanoBananaTwoEdit;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -35,21 +36,23 @@ abstract class TestCase extends BaseTestCase
         $app['config']->set('fal-ai.queue.timeout', 5);
     }
 
-    protected function falGateway(): FalGateway
+    protected function falImageGateway(): ImageGateway
     {
         $registry = new ModelHandlerRegistry;
         $registry->register(new NanoBananaTwoEdit);
 
-        return new FalGateway($this->app->make(Dispatcher::class), $registry);
+        return new ImageGateway($this->app->make(Dispatcher::class), $registry);
     }
 
     protected function falProvider(array $extraConfig = []): FalProvider
     {
-        return new FalProvider(
-            $this->falGateway(),
+        $events = $this->app->make(Dispatcher::class);
+
+        return (new FalProvider(
+            new FalGateway,
             ['driver' => 'fal', 'name' => 'fal', 'key' => 'test-fal-key', ...$extraConfig],
-            $this->app->make(Dispatcher::class),
-        );
+            $events,
+        ))->useImageGateway($this->falImageGateway());
     }
 
     protected function fakeFalQueueRoundtrip(array $resultImages = []): void

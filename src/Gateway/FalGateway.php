@@ -2,97 +2,64 @@
 
 namespace IanRodrigues\FalAi\Gateway;
 
-use IanRodrigues\FalAi\Exceptions\MissingAttachmentsException;
-use IanRodrigues\FalAi\FalProvider;
-use IanRodrigues\FalAi\Gateway\Concerns\FetchesResults;
-use IanRodrigues\FalAi\Gateway\Concerns\MapsAttachments;
-use IanRodrigues\FalAi\Gateway\Concerns\PollsQueueStatus;
-use IanRodrigues\FalAi\Gateway\Concerns\SubmitsToQueue;
-use IanRodrigues\FalAi\Image\ModelHandlerRegistry;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Support\Facades\Http;
-use InvalidArgumentException;
-use Laravel\Ai\Contracts\Gateway\ImageGateway;
+use BadMethodCallException;
+use Closure;
+use Generator;
+use Laravel\Ai\Contracts\Files\TranscribableAudio;
+use Laravel\Ai\Contracts\Gateway\Gateway;
+use Laravel\Ai\Contracts\Providers\AudioProvider;
+use Laravel\Ai\Contracts\Providers\EmbeddingProvider;
 use Laravel\Ai\Contracts\Providers\ImageProvider;
+use Laravel\Ai\Contracts\Providers\TextProvider;
+use Laravel\Ai\Contracts\Providers\TranscriptionProvider;
+use Laravel\Ai\Gateway\TextGenerationOptions;
+use Laravel\Ai\Responses\AudioResponse;
+use Laravel\Ai\Responses\EmbeddingsResponse;
 use Laravel\Ai\Responses\ImageResponse;
-use RuntimeException;
+use Laravel\Ai\Responses\TextResponse;
+use Laravel\Ai\Responses\TranscriptionResponse;
 
-class FalGateway implements ImageGateway
+class FalGateway implements Gateway
 {
-    use FetchesResults;
-    use MapsAttachments;
-    use PollsQueueStatus;
-    use SubmitsToQueue;
+    public function generateImage(ImageProvider $provider, string $model, string $prompt, array $attachments = [], ?string $size = null, ?string $quality = null, ?int $timeout = null): ImageResponse
+    {
+        throw $this->unsupported('image');
+    }
 
-    public function __construct(
-        protected Dispatcher $events,
-        protected ModelHandlerRegistry $registry,
-    ) {}
+    public function generateAudio(AudioProvider $provider, string $model, string $text, string $voice, ?string $instructions = null, int $timeout = 30): AudioResponse
+    {
+        throw $this->unsupported('audio');
+    }
 
-    public function generateImage(
-        ImageProvider $provider,
-        string $model,
-        string $prompt,
-        array $attachments = [],
-        ?string $size = null,
-        ?string $quality = null,
-        ?int $timeout = null,
-    ): ImageResponse {
-        if (! $provider instanceof FalProvider) {
-            throw new InvalidArgumentException(
-                'FalGateway requires a FalProvider; got ['.$provider::class.'].',
-            );
-        }
+    public function generateEmbeddings(EmbeddingProvider $provider, string $model, array $inputs, int $dimensions, int $timeout = 30, array $providerOptions = []): EmbeddingsResponse
+    {
+        throw $this->unsupported('embeddings');
+    }
 
-        $handler = $this->registry->resolve($model);
+    public function generateText(TextProvider $provider, string $model, ?string $instructions, array $messages = [], array $tools = [], ?array $schema = null, ?TextGenerationOptions $options = null, ?int $timeout = null): TextResponse
+    {
+        throw $this->unsupported('text');
+    }
 
-        if ($handler->requiresAttachments() && empty($attachments)) {
-            throw new MissingAttachmentsException(
-                "fal model [{$model}] requires at least one input image attachment.",
-            );
-        }
+    public function streamText(string $invocationId, TextProvider $provider, string $model, ?string $instructions, array $messages = [], array $tools = [], ?array $schema = null, ?TextGenerationOptions $options = null, ?int $timeout = null): Generator
+    {
+        throw $this->unsupported('text streaming');
+    }
 
-        $apiKey = $this->apiKey($provider);
-        $imageUrls = $this->mapAttachments($attachments, $apiKey);
+    public function onToolInvocation(Closure $invoking, Closure $invoked): self
+    {
+        return $this;
+    }
 
-        $payload = $handler->buildPayload(
-            prompt: $prompt,
-            imageUrls: $imageUrls,
-            size: $size,
-            quality: $quality,
-            requestOptions: $provider->pullRequestOptions(),
-            providerConfig: $provider->additionalConfiguration(),
+    public function generateTranscription(TranscriptionProvider $provider, string $model, TranscribableAudio $audio, ?string $language = null, bool $diarize = false, int $timeout = 30, array $providerOptions = []): TranscriptionResponse
+    {
+        throw $this->unsupported('transcription');
+    }
+
+    protected function unsupported(string $capability): BadMethodCallException
+    {
+        return new BadMethodCallException(
+            "The fal driver has no [{$capability}] gateway wired up. Inject one with FalProvider::use{$capability}Gateway()."
         );
-
-        $submitted = $this->submitToQueue($handler->endpoint($model), $payload, $apiKey);
-
-        $this->pollUntilComplete($submitted['status_url'], $apiKey, $timeout);
-
-        $result = $this->fetchResult($submitted['response_url'], $apiKey);
-
-        return $handler->parseResponse($result, $model);
-    }
-
-    protected function client(string $apiKey): PendingRequest
-    {
-        return Http::withToken($apiKey, 'Key')
-            ->acceptJson()
-            ->timeout((int) config('fal-ai.request_timeout', 30))
-            ->connectTimeout((int) config('fal-ai.connect_timeout', 10));
-    }
-
-    protected function apiKey(FalProvider $provider): string
-    {
-        $key = (string) ($provider->providerCredentials()['key'] ?? '')
-            ?: (string) config('fal-ai.key');
-
-        if ($key === '') {
-            throw new RuntimeException(
-                'Missing fal API key. Set FAL_KEY in your environment or configure ai.providers.fal.key.',
-            );
-        }
-
-        return $key;
     }
 }
