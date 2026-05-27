@@ -1,0 +1,66 @@
+{
+  "name": "ianrodrigues/laravel-fal-ai",
+  "description": "fal.ai driver for the Laravel AI SDK. Ships image generation today; audio, video, and transcription handlers can be added as fal expands.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "laravel-ai",
+    "fal",
+    "fal-ai",
+    "image-generation",
+    "ai"
+  ],
+  "authors": [
+    {
+      "name": "Ian Rodrigues",
+      "email": "ian@rdgs.net"
+    }
+  ],
+  "require": {
+    "php": "^8.3",
+    "illuminate/contracts": "^12.0|^13.0",
+    "illuminate/http": "^12.0|^13.0",
+    "illuminate/support": "^12.0|^13.0",
+    "laravel/ai": "^0.7"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.18",
+    "orchestra/testbench": "^9.0|^10.0",
+    "pestphp/pest": "^3.0",
+    "pestphp/pest-plugin-laravel": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "IanRodrigues\\FalAi\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "IanRodrigues\\FalAi\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "IanRodrigues\\FalAi\\FalServiceProvider"
+      ],
+      "aliases": {
+        "Fal": "IanRodrigues\\FalAi\\Facades\\Fal"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/pest",
+    "test:coverage": "vendor/bin/pest --coverage",
+    "lint": "vendor/bin/pint",
+    "lint:test": "vendor/bin/pint --test"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
+  "prefer-stable": true
+}
