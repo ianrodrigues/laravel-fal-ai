@@ -55,23 +55,34 @@ trait MapsAttachments
 
     protected function uploadBinary(string $contents, string $filename, string $mime, string $apiKey): string
     {
-        $uploadUrl = (string) config('fal-ai.storage_upload_url');
+        $initiateUrl = (string) config('fal-ai.storage_upload_url');
 
-        $response = $this->client($apiKey)
-            ->attach('file', $contents, $filename, ['Content-Type' => $mime])
-            ->post($uploadUrl);
+        $initiate = $this->client($apiKey)->post($initiateUrl, [
+            'content_type' => $mime,
+            'file_name' => $filename,
+        ]);
 
-        if ($response->failed()) {
-            throw FalRequestException::from($response, 'storage upload');
+        if ($initiate->failed()) {
+            throw FalRequestException::from($initiate, 'storage upload initiate');
         }
 
-        $url = $response->json('access_url') ?? $response->json('url');
+        $uploadUrl = $initiate->json('upload_url');
+        $fileUrl = $initiate->json('file_url') ?? $initiate->json('access_url') ?? $initiate->json('url');
 
-        if (! is_string($url) || $url === '') {
-            throw new FalRequestException('fal storage upload returned no usable URL.');
+        if (! is_string($uploadUrl) || $uploadUrl === '' || ! is_string($fileUrl) || $fileUrl === '') {
+            throw new FalRequestException('fal storage initiate returned no usable URLs.');
         }
 
-        return $url;
+        $put = $this->client($apiKey)
+            ->withHeaders(['Content-Type' => $mime])
+            ->withBody($contents, $mime)
+            ->put($uploadUrl);
+
+        if ($put->failed()) {
+            throw FalRequestException::from($put, 'storage upload put');
+        }
+
+        return $fileUrl;
     }
 
     abstract protected function client(string $apiKey): PendingRequest;

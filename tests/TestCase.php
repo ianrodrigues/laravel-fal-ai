@@ -61,9 +61,11 @@ abstract class TestCase extends BaseTestCase
             ]),
             'queue.fal.run/status' => Http::response(['status' => 'COMPLETED']),
             'queue.fal.run/result' => Http::response(['images' => $resultImages]),
-            'rest.alpha.fal.ai/storage/upload' => Http::response([
-                'access_url' => 'https://fal.media/uploads/fake-uploaded.png',
+            'rest.alpha.fal.ai/storage/upload/initiate' => Http::response([
+                'file_url' => 'https://fal.media/uploads/fake-uploaded.png',
+                'upload_url' => 'https://fal.media/upload-target/fake-uploaded.png',
             ]),
+            'fal.media/upload-target/*' => Http::response('', 200),
         ]);
     }
 }
