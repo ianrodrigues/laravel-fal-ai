@@ -29,7 +29,7 @@ return [
 
     'base_url' => env('FAL_QUEUE_URL', 'https://queue.fal.run'),
     'sync_base_url' => env('FAL_SYNC_URL', 'https://fal.run'),
-    'storage_upload_url' => env('FAL_STORAGE_URL', 'https://rest.alpha.fal.ai/storage/upload'),
+    'storage_upload_url' => env('FAL_STORAGE_URL', 'https://rest.alpha.fal.ai/storage/upload/initiate'),
 
     /*
     |--------------------------------------------------------------------------

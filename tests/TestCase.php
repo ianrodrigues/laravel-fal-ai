@@ -53,6 +53,8 @@ abstract class TestCase extends BaseTestCase
 
     protected function fakeFalQueueRoundtrip(array $resultImages = []): void
     {
+        $uploadTarget = 'https://fal.media/upload-target/fake-uploaded.png';
+
         Http::fake([
             'queue.fal.run/fal-ai/nano-banana-2/edit' => Http::response([
                 'request_id' => 'req-test',
@@ -61,9 +63,11 @@ abstract class TestCase extends BaseTestCase
             ]),
             'queue.fal.run/status' => Http::response(['status' => 'COMPLETED']),
             'queue.fal.run/result' => Http::response(['images' => $resultImages]),
-            'rest.alpha.fal.ai/storage/upload' => Http::response([
-                'access_url' => 'https://fal.media/uploads/fake-uploaded.png',
+            (string) config('fal-ai.storage_upload_url') => Http::response([
+                'file_url' => 'https://fal.media/uploads/fake-uploaded.png',
+                'upload_url' => $uploadTarget,
             ]),
+            $uploadTarget => Http::response('', 200),
         ]);
     }
 }
