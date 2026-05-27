@@ -1,5 +1,6 @@
 <?php
 
+use IanRodrigues\FalAi\Image\BireFNet;
 use IanRodrigues\FalAi\Image\NanoBananaTwoEdit;
 
 return [
@@ -99,6 +100,7 @@ return [
     'image' => [
         'models' => [
             NanoBananaTwoEdit::class,
+            BireFNet::class,
         ],
     ],
 
