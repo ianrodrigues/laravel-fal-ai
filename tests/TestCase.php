@@ -4,7 +4,6 @@ namespace IanRodrigues\FalAi\Tests;
 
 use IanRodrigues\FalAi\FalProvider;
 use IanRodrigues\FalAi\FalServiceProvider;
-use IanRodrigues\FalAi\Gateway\FalGateway;
 use IanRodrigues\FalAi\Image\Gateway as ImageGateway;
 use IanRodrigues\FalAi\Image\ModelHandlerRegistry;
 use IanRodrigues\FalAi\Image\NanoBananaTwoEdit;
@@ -46,12 +45,9 @@ abstract class TestCase extends BaseTestCase
 
     protected function falProvider(array $extraConfig = []): FalProvider
     {
-        $events = $this->app->make(Dispatcher::class);
-
         return (new FalProvider(
-            new FalGateway,
             ['driver' => 'fal', 'name' => 'fal', 'key' => 'test-fal-key', ...$extraConfig],
-            $events,
+            $this->app->make(Dispatcher::class),
         ))->useImageGateway($this->falImageGateway());
     }
 

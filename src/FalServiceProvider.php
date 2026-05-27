@@ -2,7 +2,6 @@
 
 namespace IanRodrigues\FalAi;
 
-use IanRodrigues\FalAi\Gateway\FalGateway;
 use IanRodrigues\FalAi\Image\Gateway as ImageGateway;
 use IanRodrigues\FalAi\Image\ModelHandler;
 use IanRodrigues\FalAi\Image\ModelHandlerRegistry;
@@ -42,7 +41,7 @@ class FalServiceProvider extends ServiceProvider
                 $events = $app->make(Dispatcher::class);
                 $registry = $app->make(ModelHandlerRegistry::class);
 
-                return (new FalProvider(new FalGateway, $config, $events))
+                return (new FalProvider($config, $events))
                     ->useImageGateway(new ImageGateway($events, $registry));
             });
         });
